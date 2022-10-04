@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Sudoku solver">
+    <title>Sudoku Solver</title>
+
+    <style>
+        body {
+            background-color: rgba(113, 172, 212, 50%);
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            -ms-overflow-style: none; /* for Internet Explorer, Edge */
+            scrollbar-width: none; /* for Firefox */
+            overflow-y: hidden;
+        }
+
+        body::-webkit-scrollbar {
+            display: none; /* for Chrome, Safari, and Opera */
+        }
+
+        header nav {
+            display: inline-block;
+            justify-items: right;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul {
+            display: flex;
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav li {
+            display: table-cell;
+            float: left;
+            background-color: white;
+        }
+
+        nav li a {
+            display: inline-block;
+            color: black;
+            padding: 16px;
+            text-decoration: none;
+            height: 5px;
+            line-height: 10px;
+            font-family: Arial, serif;
+        }
+
+        nav li a:hover {
+            border-bottom-right-radius: inherit;
+            background-color: rgba(147, 112, 219, 100%);
+            color: white;
+        }
+
+        .sudoku-was-solved {
+            color: forestgreen;
+            background: rgba(34, 139, 34, 20%);
+            padding: 2px 8px 2px 8px;
+            border-radius: 10px;
+            font-family: Arial, serif;
+            font-weight: bold;
+            margin-top: -20px;
+        }
+
+        .sudoku-was-not-solved {
+            color: darkred;
+            background: rgba(139, 0, 0, 20%);
+            padding: 2px 8px 2px 8px;
+            border-radius: 10px;
+            font-family: Arial, serif;
+            font-weight: bold;
+            margin-top: -20px;
+        }
+
+        .soduko {
+            display: grid;
+            grid-template-columns: 1fr;
+            justify-items: center;
+            margin-top: 50px;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .number-field {
+            text-align: center;
+            background-color: white;
+            width: 25px;
+            height: 25px;
+            margin: 1px;
+            padding: 2px;
+            font-size: 1.25em;
+            border-width: 0;
+            border-radius: 5px;
+        }
+
+        [isDark="true"] {
+            background-color: rgb(242, 242, 242);
+        }
+
+        [isDark="true"]:hover, .number-field:hover {
+            background-color: #dedede;
+        }
+
+        [isDark="true"]:focus, .number-field:focus {
+            background-color: palegreen;
+        }
+
+        [isDark="true"]:not(:placeholder-shown), .number-field:not(:placeholder-shown) {
+            background-color: palegreen;
+        }
+
+        [solved="true"] {
+            background-color: rgba(100, 149, 237, 0.5) !important;
+        }
+
+        .submit-button {
+            --bg-color: mediumpurple;
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            border: none;
+            color: white;
+            text-align: center;
+            font-size: 1em;
+            padding: 10px;
+            width: 100px;
+            transition: all 0.5s;
+            cursor: pointer;
+            margin: 15px;
+        }
+
+        .submit-button span {
+            cursor: pointer;
+            display: inline-block;
+            position: relative;
+            transition: 0.5s;
+        }
+
+        .submit-button span:after {
+            content: '\00bb';
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            right: -5px;
+            transition: 0.5s;
+        }
+
+        .submit-button:hover span {
+            padding-right: 15px;
+        }
+
+        .submit-button:hover span:after {
+            opacity: 1;
+            right: 0;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+
+        footer nav {
+            display: flex;
+            width: 100%;
+            height: 35px;
+        }
+
+        footer nav ul {
+            display: grid;
+            width: 100%;
+            grid-template-columns: 1fr 4fr 1fr;
+        }
+
+        footer nav ul li {
+            text-align: center;
+            height: 100%;
+            display: grid;
+        }
+
+        footer nav ul li a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 5px 3px 5px;
+        }
+
+        @media (min-width: 300px) {
+            footer {
+                height: 28px;
+            }
+
+            footer nav ul {
+                height: fit-content;
+            }
+
+            footer nav ul li a {
+                line-height: 20px;
+                height: auto;
+            }
+        }
+
+        /*@media (max-width: 342px) {
+            header nav ul {
+                display: grid;
+                margin-bottom: -50px;
+            }
+        }*/
+    </style>
+    <script defer>
+        //3,9,6,8,1,2,7,4,5,1,5,7,6,9,4,8,3,2,2,8,4,3,5,7,1,9,6,6,7,2,1,3,5,9,8,4,8,3,1,9,4,6,2,5,7,5,4,9,7,2,8,6,1,3,9,2,8,4,7,3,5,6,1,7,6,3,5,8,1,4,2,9,4,1,5,2,6,9,3,7,8
+        function pasteNumbers() {
+            navigator.clipboard.readText()
+                .then(text => {
+                    text = text.replaceAll(',','')
+                    text = text.replaceAll(' ','')
+                    if(text.length !== 81) return;
+                    for (let counter = 1; counter <= 81; counter++) {
+                        const inputfield = document.getElementById("inputfield-" + counter);
+                        const number = text[counter-1]
+                        if(number === '0') continue;
+                        inputfield.value = number;
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to read clipboard contents: ', err);
+                });
+        }
+
+        const updateSudoku = (sudokuData) => {
+            if(sudokuData.hasOwnProperty('err')) {
+                createPopUpText('Das Sudoku konnte nicht gelöst werden!','sudoku-was-not-solved')
+                const submitButton = document.getElementById('submitButton')
+                return;
+            }
+
+            for (let counter = 1; counter <= 81; counter++) {
+                const inputfield = document.getElementById("inputfield-" + counter);
+                if (inputfield.value === "") {
+                    inputfield.value = sudokuData.data[counter - 1];
+                    inputfield.setAttribute('solved', 'true')
+                }
+            }
+            createPopUpText('Das Sudoku konnte gelöst werden!','sudoku-was-solved')
+            const submitButton = document.getElementById('submitButton')
+            submitButton.textContent = 'Reset ⟲'
+            submitButton.style.setProperty('--bg-color','#be3030')
+            submitButton.onclick = () => {
+                location.reload()
+            }
+        }
+
+        function createPopUpText(text, className) {
+            let div = document.getElementById('mainField')
+            let textField = document.createElement('p')
+            textField.className = className
+            textField.id = 'popUp'
+            textField.textContent = text
+
+            if(document.getElementById('popUp') != null) {
+                document.getElementById('popUp').remove()
+            }
+            div.insertBefore(textField,document.getElementById('form'))
+        }
+
+        function convertNumbers() {
+            let data = "";
+            for (let counter = 1; counter <= 81; counter++) {
+                const inputfield = document.getElementById("inputfield-" + counter.toString());
+                if (inputfield.value === "") {
+                    data = data.concat("0")
+                } else {
+                    data = data.concat(inputfield.value)
+                }
+            }
+
+            if(parseInt(data) === 0) return;
+
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '/');
+            xhr.setRequestHeader('Content-Type', 'text/plain');
+            xhr.send(data);
+            xhr.onload = () => {
+                updateSudoku(JSON.parse(xhr.response));
+            }
+        }
+    </script>
+</head>
+<body>
+
+<header>
+    <nav>
+        <ul>
+            <li><a href="#">🏠 Home</a></li>
+            <li><a href="#">👱‍♂️ About Me</a></li>
+            <li style="border-bottom-right-radius: 15px"><a href="#" style="border-bottom-right-radius: 15px">☎️
+                Contact</a></li>
+        </ul>
+    </nav>
+</header>
+<main onpaste="pasteNumbers()">
+    <div class="soduko" id="mainField">
+        <form id="form" action="/" method="post">
+            <script>
+                let counter = 1;
+                for (let row = 1; row <= 9; row++) {
+                    for (let column = 1; column <= 9; column++) {
+                        let inputField = document.createElement("input");
+                        inputField.type = "number";
+                        inputField.className = "number-field"
+                        inputField.id = "inputfield-" + counter.toString();
+                        inputField.placeholder = " ";
+                        inputField.setAttribute("isDark", "false");
+                        inputField.oninput = function () {
+                            if (!this.value.match("^[1-9]{0,1}$")) {
+                                this.value = this.value.slice(0, 1)
+                            }
+                        }
+                        inputField.addEventListener("keydown", function (e) {
+                            if (e.key === "-" || e.key === "+") {
+                                e.preventDefault();
+                            }
+                        });
+                        if (row <= 3 && [4, 5, 6].includes(column) || row > 3 && row <= 6 && [1, 2, 3, 7, 8, 9].includes(column) || row > 6 && [4, 5, 6].includes(column)) {
+                            inputField.setAttribute("isDark", "true");
+                        }
+                        document.getElementById('form').appendChild(inputField);
+                        counter++;
+                    }
+                }
+            </script>
+        </form>
+        <button class="submit-button" id='submitButton' onclick="convertNumbers()"><span>Submit</span></button>
+    </div>
+</main>
+<footer>
+    <nav>
+        <ul>
+            <li><a href="#">Privacy policy</a></li>
+            <li><a href="#" style="border-left: rgb(235,235,235) 2px solid; border-right: rgb(235,235,235) 2px solid">Impressum</a>
+            </li>
+            <li><a id="dark-mode-button" style="cursor: pointer">🌞</a></li>
+            <script>
+                const btn = document.getElementById("dark-mode-button")
+
+                btn.addEventListener("click", function () {
+                    if (this.textContent === "🌙") {
+                        this.textContent = "🌞️"
+                        return;
+                    }
+                    this.textContent = "🌙";
+                })
+            </script>
+        </ul>
+    </nav>
+</footer>
+</body>
+</html>
+
+
+

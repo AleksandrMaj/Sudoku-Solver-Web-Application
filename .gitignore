@@ -1,0 +1,16 @@
+# Project exclude paths
+/node_modules/
+/SudokuAlgorithm/Column.js
+/SudokuAlgorithm/Column.js.map
+/SudokuAlgorithm/GameField.js
+/SudokuAlgorithm/GameField.js.map
+/SudokuAlgorithm/LinkedList.js
+/SudokuAlgorithm/LinkedList.js.map
+/SudokuAlgorithm/NumberField.js
+/SudokuAlgorithm/NumberField.js.map
+/SudokuAlgorithm/Quadrant.js
+/SudokuAlgorithm/Quadrant.js.map
+/SudokuAlgorithm/Row.js
+/SudokuAlgorithm/Row.js.map
+/SudokuAlgorithm/SudokuSolver.js
+/SudokuAlgorithm/SudokuSolver.js.map
